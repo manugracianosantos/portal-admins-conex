@@ -1,8 +1,11 @@
+/* Estilos que afetam TODA a aplicação */
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
+/* Estilos personalizados */
 :root {
   --background: #ffffff;
   --foreground: #222222;
@@ -34,7 +37,8 @@
   --sidebar-ring: #41af12;
 }
 
-@theme inline {
+/*conectando as variáveis CSS com o Tailwind*/
+@theme inline { 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --color-background: var(--background);
@@ -70,6 +74,8 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/*O @layer base é onde você define estilos fundamentais que serão 
+a base de TODOS os elementos da sua aplicação.*/
 @layer base {
   * {
     @apply border-border outline-ring/50;

@@ -1,3 +1,10 @@
+// A pasta app em geral define as páginas principais do projeto
+// Esta é a página inicial que aparece em: http://localhost:3000 (login)
+
+
+/*O arquivo page.tsx em específico, representa as páginas da aplicação,
+essa é a página principal, e para isso temos as importações dos componentes */
+
 import { UserProfileCard } from "@/components/user-profile-card"
 import { LoginForm } from "@/components/login-form"
 import { RegisterForm } from "@/components/register-form"
