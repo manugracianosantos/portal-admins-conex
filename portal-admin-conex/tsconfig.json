@@ -1,3 +1,5 @@
+/*arquivo que configura o TypeScript, controlando o comportamento do compilador*/
+
 {
   "compilerOptions": {
     "target": "ES2017",

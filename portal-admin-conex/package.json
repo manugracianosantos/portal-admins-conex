@@ -1,5 +1,7 @@
 {
-  "name": "my-v0-project",
+  "//descricao do arquivo": "é o arquivo de manifesto do projeto next.js, contendo metadados(nome,versao,descricao), despendencias, script e configurações do projeto",
+  
+  "name": "portal-admin-conex",
   "version": "0.1.0",
   "private": true,
   "scripts": {
