@@ -1,3 +1,5 @@
+/*Já os componentes fora da pasta ui são funcionalidades mais específicos da aplicação, módulos completos*/
+
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

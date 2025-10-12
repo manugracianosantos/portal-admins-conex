@@ -1,3 +1,7 @@
+/*A pasta components usamos para adicionar todo tipo de componente que pode ou não ser reutilizável, os
+que estão dentro desta página ui por exemplo são componenentes bem básicos e usados no código varias vezes,
+como botões, cards, labels...*/
+
 "use client"
 
 import * as React from "react"
