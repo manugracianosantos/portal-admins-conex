@@ -1,41 +1,39 @@
-// Este arquivo define a ESTRUTURA de TODAS as páginas
-
-
-/* importações do metadata, tipo TypeScript para metadados da página, 
-Geist, Geist_Mono fontes modernas do Google Fonts e ./globals.css, 
-o sistema de design da mesma pasta */
+// app/layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from './providers/theme-provider';
+import { SidebarProvider } from './providers/sidebar-provider';
+import ClientLayout from '../components/cliente-layout';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans", // Cria variável CSS
-  subsets: ["latin"], // Suporte a caracteres latinos
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+  variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-/*Metadados da página: Definem titulo(que fica na aba) e descrição da mesma*/
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono", 
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "Portal Administradores - Conex",
-  description: "Painel administrativo para gerenciamento da plataforma Conex",
+  title: "Portal Admin CONEX",
+  description: "Painel administrativo para gerenciamento da plataforma CONEX",
 };
 
-/*Esta é a real parte do body, onde mostra a estrutura que vai ser contruida*/
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children} 
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ThemeProvider>
+          <SidebarProvider>
+            <ClientLayout>{children}</ClientLayout>
+          </SidebarProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

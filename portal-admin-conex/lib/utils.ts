@@ -14,3 +14,19 @@ export function cn(...inputs: ClassValue[]) {
 }
 // cn = "className" simplificado
 // Recebe várias classes CSS → processa → retorna classes otimizadas
+
+// export function getInitials(name) {
+//   if (!name) return "";
+//   const parts = name.split(" ");
+  
+//   if (parts.length === 1) {
+//     // Se for apenas um nome, pega a primeira letra
+//     return parts[0].charAt(0).toUpperCase();
+//   }
+  
+//   // Pega a primeira letra do primeiro e do último nome
+//   const firstInitial = parts[0].charAt(0);
+//   const lastInitial = parts[parts.length - 1].charAt(0);
+  
+//   return `${firstInitial}${lastInitial}`.toUpperCase();
+// }

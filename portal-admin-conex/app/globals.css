@@ -37,6 +37,36 @@
   --sidebar-ring: #41af12;
 }
 
+/* globals.css - Adicione estas regras */
+
+/* Estilos para modo escuro */
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
+  --popover: #1e293b;
+  --popover-foreground: #f1f5f9;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #334155;
+  --secondary-foreground: #f1f5f9;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
+  --accent: #334155;
+  --accent-foreground: #f1f5f9;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #334155;
+  --input: #334155;
+  --ring: #3b82f6;
+}
+
+/* Transições suaves para tema */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
 /*conectando as variáveis CSS com o Tailwind*/
 @theme inline { 
   --font-sans: var(--font-geist-sans);
