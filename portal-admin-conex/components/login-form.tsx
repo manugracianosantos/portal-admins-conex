@@ -5,8 +5,19 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { AtSign, Lock } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export function LoginForm() {
+  const router = useRouter()
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Aqui você pode adicionar a lógica de autenticação
+    // Por enquanto, vamos apenas redirecionar para o dashboard
+    router.push("/dashboard")
+  }
+
   return (
     <div className="min-h-screen flex">
       {/* Left side - Decorative */}
@@ -51,13 +62,19 @@ export function LoginForm() {
           </div>
 
           {/* Form */}
-          <div className="space-y-6">
+          <form className="space-y-6" onSubmit={handleLogin}>
             <div className="space-y-2">
               <Label htmlFor="email" className="text-[#222222]">
                 Email
               </Label>
               <div className="relative">
-                <Input id="email" type="email" placeholder="" className="pr-10 bg-[#f8f8f8] border-[#e3e3e3]" />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="seu@email.com" 
+                  className="pr-10 bg-[#f8f8f8] border-[#e3e3e3]" 
+                  required
+                />
                 <AtSign className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#787a82]" />
               </div>
             </div>
@@ -67,7 +84,13 @@ export function LoginForm() {
                 Senha
               </Label>
               <div className="relative">
-                <Input id="password" type="password" placeholder="" className="pr-10 bg-[#f8f8f8] border-[#e3e3e3]" />
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder="Sua senha" 
+                  className="pr-10 bg-[#f8f8f8] border-[#e3e3e3]" 
+                  required
+                />
                 <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#787a82]" />
               </div>
             </div>
@@ -84,10 +107,26 @@ export function LoginForm() {
               </a>
             </div>
 
-            <Button className="w-full bg-gradient-to-r from-[#41af12] to-[#0097b2] text-white hover:opacity-90">
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-[#41af12] to-[#0097b2] text-white hover:opacity-90"
+            >
               Login
             </Button>
-          </div>
+
+            {/* Link para cadastro */}
+            <div className="text-center">
+              <p className="text-sm text-[#787a82]">
+                Ainda não tem uma conta?{" "}
+                <Link 
+                  href="/register" 
+                  className="text-[#0097b2] hover:text-[#41af12] hover:underline font-medium"
+                >
+                  Cadastre-se
+                </Link>
+              </p>
+            </div>
+          </form>
         </div>
       </div>
     </div>

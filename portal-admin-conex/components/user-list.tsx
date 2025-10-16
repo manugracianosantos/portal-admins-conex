@@ -1,139 +1,390 @@
 "use client"
 
+import { useState, useMemo } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Menu, Search, MoreVertical } from "lucide-react"
+import { Search, MoreVertical, Plus } from "lucide-react"
+import { useSidebar } from "@/app/providers/sidebar-provider"
+import { useTheme } from '@/app/providers/theme-provider'
+import { UserProfileCard } from "./user-profile-card"
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+type UserType = "cliente" | "profissional" | "condominio"
 
-const users = [
+interface User {
+  name: string
+  email: string
+  createdDate: string
+  updatedDate: string
+  id: string
+  phone: string
+  birthDate: string
+  cpf: string
+  userType: UserType
+}
+
+const initialUsers: User[] = [
   {
     name: "Griselda Pereira da Silva",
     email: "griselapereira@gmail.com",
     createdDate: "27/05/2025",
-    userType: "Profissional",
+    updatedDate: "28/05/2025",
+    id: "USR001",
+    phone: "(11) 99999-9999",
+    birthDate: "15/03/1985",
+    cpf: "123.456.789-00",
+    userType: "profissional",
+  },
+  {
+    name: "João Silva Santos",
+    email: "joaosilva@email.com",
+    createdDate: "26/05/2025",
+    updatedDate: "27/05/2025",
+    id: "USR002",
+    phone: "(11) 88888-8888",
+    birthDate: "20/04/1990",
+    cpf: "987.654.321-00",
+    userType: "cliente",
+  },
+  {
+    name: "Maria Oliveira Costa",
+    email: "mariaoliveira@email.com",
+    createdDate: "25/05/2025",
+    updatedDate: "26/05/2025",
+    id: "USR003",
+    phone: "(11) 77777-7777",
+    birthDate: "10/05/1988",
+    cpf: "456.789.123-00",
+    userType: "condominio",
   },
 ]
 
 export function UserList() {
+  const { isCollapsed } = useSidebar()
+  const { theme } = useTheme()
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [userList, setUserList] = useState<User[]>(initialUsers)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedFilter, setSelectedFilter] = useState("Sem filtros")
+  const [isCreatingUser, setIsCreatingUser] = useState(false)
+
+  // Cores baseadas no tema
+  const colors = {
+    light: {
+      background: "#f8f8f8",
+      cardBackground: "#ffffff",
+      border: "#e3e3e3",
+      textPrimary: "#222222",
+      textSecondary: "#787a82",
+      inputBackground: "#ffffff",
+    },
+    dark: {
+      background: "#1a1a1a",
+      cardBackground: "#2d2d2d",
+      border: "#404040",
+      textPrimary: "#ffffff",
+      textSecondary: "#a0a0a0",
+      inputBackground: "#363636",
+    }
+  }
+
+  const currentColors = colors[theme]
+
+  // Função para gerar novo ID de usuário
+  const generateNewUserId = () => {
+    const lastId = userList[userList.length - 1]?.id || "USR000"
+    const lastNumber = parseInt(lastId.slice(3))
+    return `USR${String(lastNumber + 1).padStart(3, '0')}`
+  }
+
+  // Usuário vazio para criação
+  const emptyUser: User = {
+    name: "",
+    email: "",
+    createdDate: new Date().toLocaleDateString('pt-BR'),
+    updatedDate: new Date().toLocaleDateString('pt-BR'),
+    id: generateNewUserId(),
+    phone: "",
+    birthDate: "",
+    cpf: "",
+    userType: "cliente",
+  }
+
+  // Função para filtrar usuários baseada na busca e filtro selecionado
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm) return userList
+
+    const lowercasedSearch = searchTerm.toLowerCase()
+
+    switch (selectedFilter) {
+      case "Nome":
+        return userList.filter(user => 
+          user.name.toLowerCase().includes(lowercasedSearch)
+        )
+      
+      case "ID":
+        return userList.filter(user => 
+          user.id.toLowerCase().includes(lowercasedSearch)
+        )
+      
+      case "E-mail":
+        return userList.filter(user => 
+          user.email.toLowerCase().includes(lowercasedSearch)
+        )
+      
+      case "Data de criação":
+        return userList.filter(user => 
+          user.createdDate.includes(searchTerm)
+        )
+      
+      case "Profissional":
+        return userList.filter(user => 
+          user.userType === "profissional" && 
+          Object.values(user).some(value => 
+            value.toString().toLowerCase().includes(lowercasedSearch)
+          )
+        )
+      
+      case "Cliente":
+        return userList.filter(user => 
+          user.userType === "cliente" && 
+          Object.values(user).some(value => 
+            value.toString().toLowerCase().includes(lowercasedSearch)
+          )
+        )
+      
+      case "Condomínio":
+        return userList.filter(user => 
+          user.userType === "condominio" && 
+          Object.values(user).some(value => 
+            value.toString().toLowerCase().includes(lowercasedSearch)
+          )
+        )
+      
+      case "Telefone":
+        return userList.filter(user => 
+          user.phone.includes(searchTerm)
+        )
+      
+      case "CPF":
+        return userList.filter(user => 
+          user.cpf.includes(searchTerm)
+        )
+      
+      case "Sem filtros":
+      default:
+        return userList.filter(user => 
+          Object.values(user).some(value => 
+            value.toString().toLowerCase().includes(lowercasedSearch)
+          )
+        )
+    }
+  }, [userList, searchTerm, selectedFilter])
+
+  const handleSave = (updatedData: User) => {
+    if (selectedUser) {
+      setUserList(prev => prev.map(user => 
+        user.email === selectedUser.email ? { ...user, ...updatedData } : user
+      ))
+      setSelectedUser(null)
+    }
+  }
+
+  const handleCreate = (newUserData: User) => {
+    setUserList(prev => [...prev, newUserData])
+    setIsCreatingUser(false)
+  }
+
+  const handleDelete = () => {
+    if (selectedUser) {
+      setUserList(prev => prev.filter(user => user.email !== selectedUser.email))
+      setSelectedUser(null)
+    }
+  }
+
+  const handleCreateUserClick = () => {
+    setIsCreatingUser(true)
+    setSelectedUser(emptyUser)
+  }
+
   return (
-    <div className="flex min-h-screen bg-[#f8f8f8]">
-      {/* Sidebar */}
-      <aside className="w-20 bg-white border-r border-[#e3e3e3] flex flex-col items-center py-6 space-y-8">
-        <Button variant="ghost" size="icon">
-          <Menu className="h-6 w-6 text-[#0097b2]" />
-        </Button>
-
-        <div className="flex-1 flex flex-col items-center space-y-6">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src="/placeholder.svg?height=48&width=48" alt="Mário Graciano" />
-            <AvatarFallback>MG</AvatarFallback>
-          </Avatar>
-          <p className="text-xs text-center text-[#222222] font-medium -rotate-90 whitespace-nowrap">
-            Olá, Mário Graciano
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          <Button variant="ghost" size="icon" className="w-12 h-12 text-[#787a82]">
-            <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-            </svg>
-          </Button>
-          <Button variant="ghost" size="icon" className="w-12 h-12 bg-[#41af12] text-white hover:bg-[#01800d]">
-            <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-            </svg>
-          </Button>
-        </div>
-
-        <div className="w-8 h-8 bg-gradient-to-br from-[#0097b2] to-[#41af12] rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold text-sm">A</span>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1">
-        {/* Header */}
-        <header className="bg-white border-b border-[#e3e3e3] px-8 py-4 flex items-center justify-between">
-          <Button variant="ghost" size="icon">
-            <Menu className="h-6 w-6 text-[#222222]" />
-          </Button>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon">
-              <div className="w-6 h-6 rounded-full bg-[#222222]" />
-            </Button>
+    <div className={`min-h-screen p-8 transition-all duration-300 ${
+      isCollapsed ? "ml-20" : "ml-64"
+    } ${theme === 'dark' ? 'bg-[#1a1a1a]' : 'bg-[#f8f8f8]'}`}>
+      <div className="max-w-7xl mx-auto">
+        {/* Search bar */}
+        <div className="mb-6 flex items-center gap-4">
+          <div className="relative flex-1 max-w-2xl">
+            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#0097b2] pointer-events-none`} />
+            <Input 
+              placeholder="Buscar usuário..." 
+              className={`pl-10 border-[#0097b2] focus:ring-0 ${
+                theme === 'dark' 
+                  ? 'bg-[#363636] border-[#404040] text-white' 
+                  : 'bg-white border-[#0097b2]'
+              }`}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-        </header>
-
-        {/* Content */}
-        <div className="p-8">
-          <div className="max-w-7xl mx-auto">
-            {/* Search bar */}
-            <div className="mb-6 flex items-center gap-4">
-              <div className="relative flex-1 max-w-2xl">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#787a82]" />
-                <Input placeholder="" className="pl-10 bg-white border-[#0097b2] focus-visible:ring-[#0097b2]" />
-              </div>
-              <Button variant="outline" className="text-[#41af12] border-[#41af12] bg-transparent">
-                Sem filtros
-              </Button>
-            </div>
-
-            {/* Table */}
-            <div className="bg-white rounded-lg border border-[#e3e3e3] overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-[#f8f8f8] border-b border-[#e3e3e3]">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-[#222222]">Informações do usuário</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-[#222222]">Data criação</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-[#222222]">Tipo de Usuário</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-[#222222]">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user, i) => (
-                    <tr key={i} className="border-b border-[#e3e3e3] last:border-0">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src="/placeholder.svg?height=40&width=40" alt={user.name} />
-                            <AvatarFallback>GP</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-[#222222]">{user.name}</p>
-                            <p className="text-sm text-[#787a82]">{user.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-[#222222]">{user.createdDate}</td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[#f8f8f8] text-[#222222] border border-[#e3e3e3]">
-                          {user.userType}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-5 w-5 text-[#222222]" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Editar</DropdownMenuItem>
-                            <DropdownMenuItem>Excluir</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          
+          <div className="relative inline-block min-w-[150px] max-w-[300px]">
+            <select
+              value={selectedFilter}
+              onChange={(e) => setSelectedFilter(e.target.value)}
+              className={`
+                appearance-none rounded-lg border-1 w-auto pr-8 px-3 py-1 focus:ring-1
+                ${theme === 'dark' 
+                  ? 'bg-[#363636] border-[#41af12] text-white focus:border-[#2f9e0b] focus:ring-[#41af12]' 
+                  : 'bg-white border-[#41af12] text-[#222222] focus:border-[#2f9e0b] focus:ring-[#41af12]'
+                }
+              `}
+            >
+              <option>Sem filtros</option>
+              <option>Nome</option>
+              <option>ID</option>
+              <option>E-mail</option>
+              <option>Data de criação</option>
+              <option>Profissional</option>
+              <option>Cliente</option>
+              <option>Condomínio</option>
+              <option>Telefone</option>
+              <option>CPF</option>
+            </select>
+            <svg
+              className={`w-4 h-4 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none ${
+                theme === 'dark' ? 'text-[#41af12]' : 'text-[#41af12]'
+              }`}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
+
+          {/* Botão Criar Usuário */}
+          <Button
+            onClick={handleCreateUserClick}
+            className={`flex items-center gap-2 ${
+              theme === 'dark' 
+                ? 'bg-[#41af12] hover:bg-[#2f9e0b] text-white' 
+                : 'bg-[#41af12] hover:bg-[#2f9e0b] text-white'
+            }`}
+          >
+            <Plus className="h-5 w-5" />
+            Criar usuário
+          </Button>
         </div>
-      </main>
+
+        {/* Table */}
+        <div className={`rounded-lg border overflow-hidden ${
+          theme === 'dark' 
+            ? 'bg-[#2d2d2d] border-[#404040]' 
+            : 'bg-white border-[#e3e3e3]'
+        }`}>
+          <table className="w-full">
+            <thead className={theme === 'dark' ? 'bg-[#363636] border-b border-[#404040]' : 'bg-[#f8f8f8] border-b border-[#e3e3e3]'}>
+              <tr>
+                <th className="px-6 py-4 text-left text-sm font-medium" style={{ color: currentColors.textPrimary }}>
+                  Informações do usuário
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium" style={{ color: currentColors.textPrimary }}>
+                  Data criação
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium" style={{ color: currentColors.textPrimary }}>
+                  Tipo de Usuário
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium" style={{ color: currentColors.textPrimary }}>
+                  Ações
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map((user, i) => (
+                <tr 
+                  key={i} 
+                  className={theme === 'dark' ? 'border-b border-[#404040] last:border-0' : 'border-b border-[#e3e3e3] last:border-0'}
+                >
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src="/placeholder.svg?height=40&width=40" alt={user.name} />
+                        <AvatarFallback>
+                          {user.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium" style={{ color: currentColors.textPrimary }}>
+                          {user.name}
+                        </p>
+                        <p className="text-sm" style={{ color: currentColors.textSecondary }}>
+                          {user.email}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4" style={{ color: currentColors.textPrimary }}>
+                    {user.createdDate}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm border ${
+                      theme === 'dark' 
+                        ? 'bg-[#363636] border-[#404040] text-white' 
+                        : 'bg-[#f8f8f8] border-[#e3e3e3] text-[#222222]'
+                    }`}>
+                      {user.userType}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                      onClick={() => setSelectedUser(user)}
+                    >
+                      <MoreVertical style={{ color: currentColors.textPrimary }} />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
+          {/* Mensagem quando não há resultados */}
+          {filteredUsers.length === 0 && (
+            <div className="text-center py-8">
+              <p style={{ color: currentColors.textSecondary }}>Nenhum usuário encontrado</p>
+            </div>
+          )}
+        </div>
+
+        {/* Pop-up do UserProfileCard para edição */}
+        {selectedUser && !isCreatingUser && (
+          <UserProfileCard
+            {...selectedUser}
+            open={true}
+            onSave={handleSave}
+            onDelete={handleDelete}
+            onClose={() => setSelectedUser(null)}
+          />
+        )}
+
+        {/* Pop-up do UserProfileCard para criação */}
+        {selectedUser && isCreatingUser && (
+          <UserProfileCard
+            {...selectedUser}
+            open={true}
+            onSave={handleCreate}
+            onClose={() => {
+              setSelectedUser(null)
+              setIsCreatingUser(false)
+            }}
+            isCreateMode={true}
+          />
+        )}
+      </div>
     </div>
   )
 }

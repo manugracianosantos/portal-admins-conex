@@ -1,10 +1,11 @@
+// app/dashboard/layout.tsx
 "use client"
 
 import Header from '@/components/header';
 import Sidebar from '@/components/sidebar';
 import { useSidebar } from "@/app/providers/sidebar-provider"
 
-export default function ClientLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode

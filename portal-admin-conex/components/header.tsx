@@ -7,14 +7,47 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/app/providers/theme-provider';
 import { useSidebar } from '@/app/providers/sidebar-provider';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const { theme, toggleTheme } = useTheme();
   const { sidebarWidth } = useSidebar();
+  const router = useRouter();
   const isDarkMode = theme === 'dark';
 
-  const handleLogout = () => {
-    console.log('Fazendo logout...');
+  const handleLogout = async () => {
+    try {
+      console.log('Iniciando logout...');
+      
+      // 1. Chama a API de logout no backend
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro no logout');
+      }
+
+      console.log('Logout realizado com sucesso no backend');
+
+      // 2. Limpa dados locais (se houver)
+      localStorage.removeItem('user-data');
+      localStorage.removeItem('auth-token');
+      sessionStorage.clear();
+
+      // 3. Redireciona para login
+      router.push('/login');
+      router.refresh(); // Força atualização do cache
+
+    } catch (error) {
+      console.error('Erro no logout:', error);
+      // Mesmo com erro, redireciona para login como fallback
+      router.push('/login');
+    }
   };
 
   return (
@@ -32,7 +65,7 @@ export default function Header() {
         width: `calc(100vw - ${sidebarWidth}px)`
       }}
     >
-      {/* Lado Esquerdo - Título ou espaço vazio */}
+      {/* Lado Esquerdo - Título */}
       <div className="flex items-center">
         <h1 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
           Portal Admin CONEX
@@ -56,7 +89,7 @@ export default function Header() {
           )}
         </Button>
 
-        {/* Logout */}
+        {/* Botão Logout */}
         <Button
           variant="ghost"
           size="icon"
@@ -69,4 +102,4 @@ export default function Header() {
       </div>
     </header>
   );
-}   
+}

@@ -1,13 +1,22 @@
 "use client"
 
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AtSign, Lock, User } from "lucide-react"
-
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export function RegisterForm() {
+  const router = useRouter()
+
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault()
+    // Aqui você pode adicionar a lógica de cadastro
+    // Por enquanto, vamos apenas redirecionar para o login
+    router.push("/")
+  }
+
   return (
     <div className="min-h-screen flex">
       {/* Left side - Registration form */}
@@ -21,13 +30,19 @@ export function RegisterForm() {
           </div>
 
           {/* Form */}
-          <div className="space-y-6">
+          <form className="space-y-6" onSubmit={handleRegister}>
             <div className="space-y-2">
               <Label htmlFor="fullname" className="text-[#222222]">
                 Nome Completo
               </Label>
               <div className="relative">
-                <Input id="fullname" type="text" placeholder="" className="pr-10 bg-[#f8f8f8] border-[#e3e3e3]" />
+                <Input 
+                  id="fullname" 
+                  type="text" 
+                  placeholder="Seu nome completo" 
+                  className="pr-10 bg-[#f8f8f8] border-[#e3e3e3]" 
+                  required
+                />
                 <User className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#787a82]" />
               </div>
             </div>
@@ -37,7 +52,13 @@ export function RegisterForm() {
                 Email
               </Label>
               <div className="relative">
-                <Input id="email" type="email" placeholder="" className="pr-10 bg-[#f8f8f8] border-[#e3e3e3]" />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="seu@email.com" 
+                  className="pr-10 bg-[#f8f8f8] border-[#e3e3e3]" 
+                  required
+                />
                 <AtSign className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#787a82]" />
               </div>
             </div>
@@ -47,7 +68,14 @@ export function RegisterForm() {
                 Crie uma senha
               </Label>
               <div className="relative">
-                <Input id="password" type="password" placeholder="" className="pr-10 bg-[#f8f8f8] border-[#e3e3e3]" />
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder="Mínimo 8 caracteres" 
+                  className="pr-10 bg-[#f8f8f8] border-[#e3e3e3]" 
+                  required
+                  minLength={8}
+                />
                 <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#787a82]" />
               </div>
             </div>
@@ -60,15 +88,35 @@ export function RegisterForm() {
                 <Input
                   id="confirm-password"
                   type="password"
-                  placeholder=""
+                  placeholder="Digite a senha novamente"
                   className="pr-10 bg-[#f8f8f8] border-[#e3e3e3]"
+                  required
+                  minLength={8}
                 />
                 <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#787a82]" />
               </div>
             </div>
 
-            <Button className="w-full bg-[#41af12] text-white hover:bg-[#01800d]">Cadastrar</Button>
-          </div>
+            <Button 
+              type="submit" 
+              className="w-full bg-[#41af12] text-white hover:bg-[#01800d]"
+            >
+              Cadastrar
+            </Button>
+
+            {/* Link para login */}
+            <div className="text-center">
+              <p className="text-sm text-[#787a82]">
+                Já tem uma conta?{" "}
+                <Link 
+                  href="/" 
+                  className="text-[#0097b2] hover:text-[#41af12] hover:underline font-medium"
+                >
+                  Fazer login
+                </Link>
+              </p>
+            </div>
+          </form>
         </div>
       </div>
 

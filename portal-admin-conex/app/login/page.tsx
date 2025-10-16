@@ -1,6 +1,5 @@
-// app/page.tsx
 import { LoginForm } from "@/components/login-form"
 
-export default function Home() {
+export default function Login() {
   return <LoginForm />
 }
