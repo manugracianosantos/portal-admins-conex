@@ -1,4 +1,3 @@
-/*Já os componentes fora da pasta ui são funcionalidades mais específicos da aplicação, módulos completos*/
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,56 +7,31 @@ import { TrendingUp, Star } from "lucide-react"
 import { useTheme } from '@/app/providers/theme-provider'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
 import { useSidebar } from "@/app/providers/sidebar-provider"
-
-const servicesData = [
-  { month: "Jan", value1: 300, value2: 200, value3: 400 },
-  { month: "Fev", value1: 400, value2: 350, value3: 300 },
-  { month: "Mar", value1: 200, value2: 400, value3: 350 },
-  { month: "Abr", value1: 450, value2: 300, value3: 200 },
-  { month: "Mai", value1: 300, value2: 250, value3: 400 },
-  { month: "Jun", value1: 300, value2: 250, value3: 400 },
-  { month: "Jul", value1: 300, value2: 250, value3: 400 },
-  { month: "Ago", value1: 300, value2: 250, value3: 400 },
-  { month: "Set", value1: 300, value2: 250, value3: 400 },
-  { month: "Out", value1: 300, value2: 250, value3: 400 },
-  { month: "Nov", value1: 300, value2: 250, value3: 400 },
-  { month: "Dez", value1: 300, value2: 250, value3: 400 },
-]
-
-const cadastrosData = [
-  { month: "Jan", value: 10 },
-  { month: "Fev", value: 12 },
-  { month: "Mar", value: 14 },
-  { month: "Abr", value: 8 },
-  { month: "Mai", value: 10 },
-  { month: "Jun", value: 8 },
-  { month: "Jul", value: 6 },
-]
-
-const feedbacks = [
-  {
-    name: "Griselda Pereira",
-    rating: 5,
-    comment: "Ótimo trabalho! Muito profissional e pontual.",
-    time: "2h",
-  },
-  {
-    name: "Griselda Pereira",
-    rating: 5,
-    comment: "Serviço excelente, recomendo!",
-    time: "5h",
-  },
-  {
-    name: "Griselda Pereira",
-    rating: 5,
-    comment: "Muito satisfeito com o resultado.",
-    time: "1d",
-  },
-]
+import { useEffect, useState } from "react"
+import { api } from "@/services/api"
+import { useAuth } from "@/hooks/useAuth"
 
 export function Dashboard() {
   const { isCollapsed } = useSidebar()
   const { theme } = useTheme()
+  const { token } = useAuth()
+  
+  const [dashboardData, setDashboardData] = useState({
+    overview: {
+      totalUsers: 0,
+      totalServices: 0,
+      completedServices: 0,
+      servicesWithPhotos: 0,
+      completionRate: 0
+    },
+    usersChart: [],
+    servicesChart: [],
+    popularServices: [],
+    servicesStatus: [],
+    loading: true
+  })
+
+  const [timeFilter, setTimeFilter] = useState("month")
 
   // Cores baseadas no tema
   const colors = {
@@ -85,6 +59,89 @@ export function Dashboard() {
 
   const currentColors = colors[theme]
 
+  // No seu dashboard.tsx - atualize a parte do useEffect
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!token) return
+      
+      try {
+        setDashboardData(prev => ({ ...prev, loading: true }))
+        
+        const [overview, usersChart, servicesChart, popularServices, servicesStatus] = await Promise.all([
+          api.dashboard.getOverview(token),
+          api.dashboard.getUsersChart(token, timeFilter),
+          api.dashboard.getServicesChart(token, timeFilter),
+          api.dashboard.getPopularServices(token, timeFilter),
+          api.dashboard.getServicesStatus(token, timeFilter)
+        ])
+
+        setDashboardData({
+          overview,
+          usersChart,
+          servicesChart,
+          popularServices,
+          servicesStatus,
+          loading: false
+        })
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+        setDashboardData(prev => ({ ...prev, loading: false }))
+      }
+    }
+
+    fetchDashboardData()
+  }, [token, timeFilter])
+
+  // Format numbers
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M'
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K'
+    }
+    return num.toString()
+  }
+
+  const statsCards = [
+    { 
+      title: "Total de Usuários", 
+      value: formatNumber(dashboardData.overview.totalUsers),
+      trend: "up" 
+    },
+    { 
+      title: "Serviços Completos", 
+      value: formatNumber(dashboardData.overview.completedServices),
+      trend: "up" 
+    },
+    { 
+      title: "Serviços com Fotos", 
+      value: formatNumber(dashboardData.overview.servicesWithPhotos),
+      trend: "up" 
+    },
+  ]
+
+  const feedbacks = [
+    {
+      name: "Griselda Pereira",
+      rating: 5,
+      comment: "Ótimo trabalho! Muito profissional e pontual.",
+      time: "2h",
+    },
+    {
+      name: "Griselda Pereira",
+      rating: 5,
+      comment: "Serviço excelente, recomendo!",
+      time: "5h",
+    },
+    {
+      name: "Griselda Pereira",
+      rating: 5,
+      comment: "Muito satisfeito com o resultado.",
+      time: "1d",
+    },
+  ]
+
   return (
     <div className={`min-h-screen p-0 transition-all duration-300 ${
       isCollapsed ? "ml-20" : "ml-64"
@@ -92,11 +149,7 @@ export function Dashboard() {
       <div className="max-w-7xl mx-auto space-y-6 p-6">
         {/* Stats cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { title: "Total de Usuários", value: "5.800.100" },
-            { title: "Serviços Completos", value: "10.000.000" },
-            { title: "Feedbacks Negativos", value: "100" },
-          ].map((card, i) => (
+          {statsCards.map((card, i) => (
             <Card
               key={i}
               className={`border rounded-2xl shadow-sm p-4 flex flex-col justify-between ${
@@ -117,7 +170,7 @@ export function Dashboard() {
                 <div className={`text-4xl font-bold leading-none ${
                   theme === 'dark' ? 'text-[#0097b2]' : 'text-[#0097b2]'
                 }`}>
-                  {card.value}
+                  {dashboardData.loading ? "..." : card.value}
                 </div>
               </CardContent>
               <div className="flex justify-end mt-3">
@@ -218,13 +271,13 @@ export function Dashboard() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={cadastrosData}>
+                  <BarChart data={dashboardData.usersChart}>
                     <CartesianGrid 
                       strokeDasharray="3 3" 
                       stroke={theme === 'dark' ? '#404040' : '#e3e3e3'} 
                     />
                     <XAxis 
-                      dataKey="month" 
+                      dataKey="label" 
                       tick={{ fontSize: 12 }} 
                       stroke={theme === 'dark' ? '#a0a0a0' : '#787a82'} 
                     />
@@ -232,21 +285,23 @@ export function Dashboard() {
                       tick={{ fontSize: 12 }} 
                       stroke={theme === 'dark' ? '#a0a0a0' : '#787a82'} 
                     />
-                    <Bar dataKey="value" fill="#0097b2" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="count" fill="#0097b2" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
                 <div className="flex justify-end mt-4">
                   <select
+                    value={timeFilter}
+                    onChange={(e) => setTimeFilter(e.target.value)}
                     className={`border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097b2] ${
                       theme === 'dark' 
                         ? 'bg-[#363636] border-[#404040] text-white' 
                         : 'border-gray-300'
                     }`}
                   >
-                    <option>Ano</option>
-                    <option>Mês</option>
-                    <option>Semana</option>
-                    <option>Dia</option>
+                    <option value="year">Ano</option>
+                    <option value="month">Mês</option>
+                    <option value="week">Semana</option>
+                    <option value="day">Dia</option>
                   </select>
                 </div>
               </CardContent>
@@ -263,37 +318,40 @@ export function Dashboard() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={servicesData}>
+                  <BarChart data={dashboardData.popularServices}>
                     <CartesianGrid 
                       strokeDasharray="3 3" 
                       stroke={theme === 'dark' ? '#404040' : '#e3e3e3'} 
                     />
                     <XAxis 
-                      dataKey="month" 
+                      dataKey="serviceName" 
                       tick={{ fontSize: 12 }} 
                       stroke={theme === 'dark' ? '#a0a0a0' : '#787a82'} 
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
                     />
                     <YAxis 
                       tick={{ fontSize: 12 }} 
                       stroke={theme === 'dark' ? '#a0a0a0' : '#787a82'} 
                     />
-                    <Line type="monotone" dataKey="value1" stroke="#ff6b6b" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="value2" stroke="#ffd93d" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="value3" stroke="#0097b2" strokeWidth={2} dot={false} />
-                  </LineChart>
+                    <Bar dataKey="photoCount" fill="#41af12" radius={[4, 4, 0, 0]} />
+                  </BarChart>
                 </ResponsiveContainer>
                 <div className="flex justify-end mt-4">
                   <select
+                    value={timeFilter}
+                    onChange={(e) => setTimeFilter(e.target.value)}
                     className={`border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-[#0097b2] ${
                       theme === 'dark' 
                         ? 'bg-[#363636] border-[#404040] text-white' 
                         : 'border-gray-300'
                     }`}
                   >
-                    <option>Ano</option>
-                    <option>Mês</option>
-                    <option>Semana</option>
-                    <option>Dia</option>
+                    <option value="year">Ano</option>
+                    <option value="month">Mês</option>
+                    <option value="week">Semana</option>
+                    <option value="day">Dia</option>
                   </select>
                 </div>
               </CardContent>
